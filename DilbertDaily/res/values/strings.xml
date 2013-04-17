@@ -4,5 +4,6 @@
     <string name="app_name">DilbertDaily</string>
     <string name="action_settings">Settings</string>
     <string name="StripTime">Comic for #### ##, ####</string>
+    <string name="refresh">Refresh</string>
 
 </resources>

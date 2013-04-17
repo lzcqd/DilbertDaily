@@ -1,57 +1,102 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".StripActivity" >
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent" >
 
-    <FrameLayout
-        android:id="@+id/frameContainer"
+    <RelativeLayout     
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="240dp"
-        android:layout_centerInParent="true">
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        tools:context=".StripActivity" >
 
-        <ImageView
-            android:id="@+id/stripContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:adjustViewBounds="true"
-            android:scaleType="fitCenter" />
-
-        <TextView
-            android:id="@+id/stripPosition"
+        <LinearLayout
+            android:id="@+id/frameContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="#AA000000"
-            android:alpha="0.5"
+            android:orientation="vertical"
+            android:layout_centerInParent="true"
+            android:minHeight="288dp" >
+
+            <ImageView
+                android:id="@+id/stripContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                android:src="@drawable/empty_photo"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/stripPosition"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                
+                android:gravity="center"              
+                android:paddingLeft="@dimen/textview_padding"
+                android:paddingRight="@dimen/textview_padding"               
+                android:textColor="@color/White" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/stripName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/frameContainer"
+            android:background="@color/PaleRed"
             android:paddingBottom="@dimen/textview_padding"
             android:paddingLeft="@dimen/textview_padding"
             android:paddingRight="@dimen/textview_padding"
             android:paddingTop="@dimen/textview_padding"
-            android:text="#/#"
             android:textColor="@color/White"
+            android:textSize="18sp"
+            android:textStyle="bold|italic"
             android:gravity="center" />
-    </FrameLayout>
+    </RelativeLayout>
 
-    <TextView
-        android:id="@+id/stripName"
+    <RelativeLayout
+        android:id="@+id/loadingPanel"
+        style="@style/GenericProgressBackground" >
+
+        <ProgressBar style="@style/GenericProgressIndicator" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/errorPanel"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/frameContainer"
-        android:background="@color/PaleRed"
-        android:paddingBottom="@dimen/textview_padding"
-        android:paddingLeft="@dimen/textview_padding"
-        android:paddingRight="@dimen/textview_padding"
-        android:paddingTop="@dimen/textview_padding"
-        android:text="@string/StripTime"
-        android:textColor="@color/White"
-        android:textSize="18sp"
-        android:textStyle="bold|italic" />
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical" >
 
-</RelativeLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="@dimen/textview_padding"
+            android:paddingRight="@dimen/textview_padding" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/alerts_and_states_error" />
+
+            <TextView
+                android:id="@+id/errorText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="some error had happened. I&apos;m now making this error super long trying to see what will happen on a short screen." />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/refreshButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/refresh" />
+    </LinearLayout>
+
+</FrameLayout>
