@@ -53,7 +53,6 @@ private static final String ns = null;
 	private DilbertEntry readEntry(XmlPullParser parser) throws XmlPullParserException, IOException{
 		parser.require(XmlPullParser.START_TAG, ns, "item");
 		String title = null;
-		String link = null;
 		String description = null;
 		
 		while (parser.next()!=XmlPullParser.END_TAG){
@@ -64,9 +63,7 @@ private static final String ns = null;
 			if (name.equals("title")){
 				title = readTitle(parser);
 			}
-			else if (name.equals("link")){
-				link = readLink(parser);
-			}
+			
 			else if (name.equals("description")){
 				description = readDescription(parser);
 			}
@@ -74,7 +71,7 @@ private static final String ns = null;
 				skip(parser);
 			}		
 		}
-		return new DilbertEntry(title,link,description);
+		return new DilbertEntry(title,description);
 	}
 	
 	private String readTitle(XmlPullParser parser) throws XmlPullParserException, IOException{
@@ -82,13 +79,6 @@ private static final String ns = null;
 		String title = readText(parser);
 		parser.require(XmlPullParser.END_TAG, ns, "title");
 		return title;
-	}
-	
-	private String readLink(XmlPullParser parser) throws XmlPullParserException, IOException{
-		parser.require(XmlPullParser.START_TAG, ns, "link");
-		String link = readText(parser);
-		parser.require(XmlPullParser.END_TAG, ns, "link");
-		return link;
 	}
 		
 	private String readDescription(XmlPullParser parser) throws XmlPullParserException, IOException{

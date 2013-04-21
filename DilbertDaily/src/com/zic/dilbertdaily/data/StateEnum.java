@@ -5,5 +5,6 @@ public enum StateEnum {
 	Error,
 	StripNameLoaded,
 	StripLoaded,
-	Initialised
+	Initialised,
+	AlreadyLoadedLatest
 }

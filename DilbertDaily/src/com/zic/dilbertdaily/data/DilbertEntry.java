@@ -2,26 +2,11 @@ package com.zic.dilbertdaily.data;
 
 public class DilbertEntry {
 	public String title;
-	public String link;
-	private String description;
+	public String description;
 	
-	public DilbertEntry(String _title, String _link,String _description){
+	public DilbertEntry(String _title,String _description){
 		title = _title;
-		link = _link;
 		description = GetUrl(_description);
-	}
-	
-	public String GetImgUrl(ImageQualityEnum quality){
-		switch (quality){
-			case Low:
-				return description;
-			case Normal:				
-				return description.replace("print.", "");
-			case High:				
-				return description.replace("print", "zoom");
-			default:
-				return null;
-		}
 	}
 	
 	private String GetUrl(String desc){

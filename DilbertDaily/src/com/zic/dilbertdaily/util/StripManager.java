@@ -2,20 +2,12 @@ package com.zic.dilbertdaily.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.xmlpull.v1.XmlPullParserException;
-
 
 import com.zic.dilbertdaily.data.DilbertEntry;
 import com.zic.dilbertdaily.data.ImageQualityEnum;
@@ -28,21 +20,23 @@ import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class StripManager {
 	private ImageView ImageContainer;
 	private TextView CurrentStripPositionView, StripNameView, ErrorTextView;
 	private Context currentContext;
 	List<StateListener> listeners = new ArrayList<StateListener>();
-	public static final String DilbertFeedUrl = "http://feed.dilbert.com/dilbert/daily_strip?format=xml";
-	private List<DilbertEntry> lastSevenDaysStrip;
+	private static final String DilbertFeedUrl = "http://feed.dilbert.com/dilbert/daily_strip?format=xml";
+	private static final String DilberDateUrlPrefix = "http://dilbert.com/strips/comic/";
+	private static final String DilbertBaseUrl = "http://dilbert.com";
 	protected ImageQualityEnum quality = ImageQualityEnum.Low;
 	private StripSplitter splitter = new StripSplitter();
-	
+	private StripDateManager dateManager = new StripDateManager();
+	private DilbertHtmlParser htmlParser = new DilbertHtmlParser();
+	private TitleUrlMappings loadedTitleUrlMappings = new TitleUrlMappings();
+
 	public StripManager(Context context, ImageView imageContainer,
 			TextView... textViews) {
 		currentContext = context;
@@ -53,40 +47,40 @@ public class StripManager {
 	}
 
 	public void Start() {
-		for (StateListener sl : listeners) {
-			StateInfo state = new StateInfo(StateEnum.Initialised,
-					StateEnum.Loading);
-			sl.StateChanged(state);
-		}
-
 		new DownloadXmlTask().execute(DilbertFeedUrl);
 	}
 
-	private void DownloadLatestStrip() {
-		new DownloadImgTask().execute(lastSevenDaysStrip.get(0).GetImgUrl(quality));
+	private void DownloadStrip(String stripUrl) {
+		new DownloadImgTask().execute(stripUrl);
 	}
 
 	public void AddListener(StateListener add) {
 		listeners.add(add);
 	}
-	
-	public void NextPage(){
-		ImageContainer.setImageBitmap(splitter.GetNextPage());
+
+	public void NextPage() {
+		ImageContainer.setImageBitmap(splitter.getNextPage());
 		UpdateStripPositionCount();
 	}
-	
-	public void PreviousPage(){
-		ImageContainer.setImageBitmap(splitter.GetPreviousPage());
+
+	public void PreviousPage() {
+		ImageContainer.setImageBitmap(splitter.getPreviousPage());
 		UpdateStripPositionCount();
 	}
-	
+
 	private class DownloadXmlTask extends
 			AsyncTask<String, Void, List<DilbertEntry>> {
 		Exception error;
 
 		@Override
+		protected void onPreExecute() {
+			raiseStateChangedEvent(StateEnum.Initialised, StateEnum.Loading);
+		}
+
+		@Override
 		protected List<DilbertEntry> doInBackground(String... urls) {
 			try {
+
 				return loadXmlFromNetwork(urls[0]);
 			} catch (NetworkErrorException e) {
 				// TODO Auto-generated catch block
@@ -112,13 +106,15 @@ public class StripManager {
 		@Override
 		protected void onPostExecute(List<DilbertEntry> result) {
 			if (result != null) {
-				lastSevenDaysStrip = result;
-				StripNameView.setText(lastSevenDaysStrip.get(0).title);
-				for (StateListener sl : listeners) {
-					sl.StateChanged(new StateInfo(StateEnum.Loading,
-							StateEnum.StripNameLoaded));
+				for (DilbertEntry entry : result) {
+					loadedTitleUrlMappings.addMapping(entry.title,
+							new DilbertImageUrl(entry.description));
 				}
-				DownloadLatestStrip();
+				dateManager.initStripDate(result.get(0).title);
+				String title = dateManager.getCurrDateTitle();
+				StripNameView.setText(title);
+				DilbertImageUrl url = loadedTitleUrlMappings.getMapping(title);
+				DownloadStrip(url.getUrl(quality));
 			} else {
 				if (error != null) {
 					if (error instanceof NetworkErrorException) {
@@ -129,7 +125,7 @@ public class StripManager {
 						SetErrorText("IO Exception occurred.");
 					}
 					for (StateListener sl : listeners) {
-						sl.StateChanged(new StateInfo(StateEnum.Loading,
+						sl.stateChanged(new StateInfo(StateEnum.Loading,
 								StateEnum.Error));
 					}
 				}
@@ -140,10 +136,17 @@ public class StripManager {
 
 	private class DownloadImgTask extends AsyncTask<String, Void, Bitmap> {
 		Exception error;
+
+		@Override
+		protected void onPreExecute() {
+			raiseStateChangedEvent(StateEnum.StripNameLoaded, StateEnum.Loading);
+		}
+
 		@Override
 		protected Bitmap doInBackground(String... urls) {
 			InputStream is = null;
 			Bitmap bitmap = null;
+
 			try {
 				is = downloadUrl(urls[0]);
 				bitmap = BitmapFactory.decodeStream(is);
@@ -168,18 +171,17 @@ public class StripManager {
 		@Override
 		protected void onPostExecute(Bitmap bitmap) {
 			if (bitmap != null) {
+				splitter.resetPage();
 				splitter.split(bitmap, quality);
-				ImageContainer.setImageBitmap(splitter.GetCurrentPage());
+				ImageContainer.setImageBitmap(splitter.getCurrentPage());
 				UpdateStripPositionCount();
-				for (StateListener sl : listeners){
-					sl.StateChanged(new StateInfo(StateEnum.StripNameLoaded,StateEnum.StripLoaded));
-				}
+				raiseStateChangedEvent(StateEnum.Loading, StateEnum.StripLoaded);
 			}
 		}
 
 	}
 
-	private void CheckConnection(Context context) throws NetworkErrorException {
+	private void checkConnection(Context context) throws NetworkErrorException {
 		final ConnectivityManager cm = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		final NetworkInfo networkInfo = cm.getActiveNetworkInfo();
@@ -195,16 +197,6 @@ public class StripManager {
 		DilbertXmlParser dilbertXmlParser = new DilbertXmlParser();
 		List<DilbertEntry> entries = null;
 
-		String title = null;
-		String link = null;
-		String description = null;
-		Calendar rightNow = Calendar.getInstance();
-		DateFormat formatter = new SimpleDateFormat("MMM d h:mmaa");
-
-		StringBuilder htmlString = new StringBuilder();
-		htmlString.append("<h3>" + formatter.format(rightNow.getTime())
-				+ "</h3>");
-
 		try {
 			stream = downloadUrl(urlString);
 			entries = dilbertXmlParser.parse(stream);
@@ -219,7 +211,7 @@ public class StripManager {
 	private InputStream downloadUrl(String urlString) throws IOException,
 			NetworkErrorException {
 		URL url = new URL(urlString);
-		CheckConnection(currentContext);
+		checkConnection(currentContext);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		conn.setReadTimeout(10000);
 		conn.setConnectTimeout(15000);
@@ -234,8 +226,89 @@ public class StripManager {
 	private void SetErrorText(String errorMsg) {
 		ErrorTextView.setText(errorMsg + "\nClick to Refresh");
 	}
-	
-	private void UpdateStripPositionCount(){
-		CurrentStripPositionView.setText(splitter.GetCurrentPageCount()+"/"+splitter.GetTotalPages());
+
+	private void UpdateStripPositionCount() {
+		CurrentStripPositionView.setText(splitter.getCurrentPageCount() + "/"
+				+ splitter.getTotalPages());
+	}
+
+	private class getImgUrlFromHtmlTask extends AsyncTask<String, Void, String> {
+		Exception error;
+
+		@Override
+		protected void onPreExecute() {
+			raiseStateChangedEvent(StateEnum.StripLoaded, StateEnum.Loading);
+		}
+
+		@Override
+		protected String doInBackground(String... urls) {
+			// TODO Auto-generated method stub
+			try {
+				return htmlParser.getImageUrl(urls[0]);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				error = e;
+				return null;
+			}
+		}
+
+		@Override
+		protected void onPostExecute(String imgBaseUrl) {
+			if (imgBaseUrl != null) {
+				String imgUrl = get_img_url(imgBaseUrl);
+				String title = dateManager.getCurrDateTitle();
+				DilbertImageUrl url = new DilbertImageUrl(imgUrl);
+				loadedTitleUrlMappings.addMapping(title, url);
+				StripNameView.setText(title);
+				DownloadStrip(url.getUrl(quality));
+			} else {
+
+			}
+		}
+
+	}
+
+	private String get_xml_by_date(String date) {
+		return DilberDateUrlPrefix + date + "/";
+	}
+
+	private String get_img_url(String imgUrl) {
+		return DilbertBaseUrl + imgUrl;
+	}
+
+	private void raiseStateChangedEvent(StateEnum prevState, StateEnum currState) {
+		for (StateListener sl : listeners) {
+			StateInfo state = new StateInfo(prevState, currState);
+			sl.stateChanged(state);
+		}
+	}
+
+	public void previous_strip() {
+
+		String dateString = dateManager.prevStripDate();
+		String title = dateManager.getCurrDateTitle();
+		DilbertImageUrl cachedUrl = loadedTitleUrlMappings.getMapping(title);
+		if (cachedUrl != null) {
+			StripNameView.setText(title);
+			DownloadStrip(cachedUrl.getUrl(quality));
+		} else {
+			String link = get_xml_by_date(dateString);
+			new getImgUrlFromHtmlTask().execute(link);
+		}
+
+	}
+
+	public void next_strip() {
+		String dateString = dateManager.nextStripDate();
+		String title = dateManager.getCurrDateTitle();
+		DilbertImageUrl cachedUrl = loadedTitleUrlMappings.getMapping(title);
+		if (cachedUrl != null) {
+			StripNameView.setText(title);
+			DownloadStrip(cachedUrl.getUrl(quality));
+		} else {
+			String link = get_xml_by_date(dateString);
+			new getImgUrlFromHtmlTask().execute(link);
+		}
+
 	}
 }

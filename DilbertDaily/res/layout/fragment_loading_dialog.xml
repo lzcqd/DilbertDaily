@@ -1,0 +1,11 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/GenericProgressBackground"
+    tools:context=".LoadingDialogFragment"
+    android:background="@android:color/transparent" >
+
+
+    <ProgressBar style="@style/GenericProgressIndicator"
+        android:background="@android:color/transparent" />
+
+</RelativeLayout>

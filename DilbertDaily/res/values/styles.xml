@@ -16,15 +16,23 @@
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
-	
+
     <style name="GenericProgressBackground" parent="android:Theme">
-    	<item name="android:layout_width">match_parent</item>    
-    	<item name="android:layout_height">match_parent</item>    
-    	<item name="android:gravity">center</item>
-	</style>
-	<style name="GenericProgressIndicator" parent="@android:style/Widget.ProgressBar.Large">
-    	<item name="android:layout_width">wrap_content</item>
-    	<item name="android:layout_height">wrap_content</item>
-    	<item name="android:indeterminate">true</item> 
-	</style>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="GenericProgressIndicator" parent="@android:style/Widget.ProgressBar.Large">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:indeterminate">true</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="Theme.CustomDialog" parent="android:Theme.Dialog">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
 </resources>

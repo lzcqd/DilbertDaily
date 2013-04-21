@@ -18,42 +18,42 @@ public class StripSplitter {
 	public void split(Bitmap img, ImageQualityEnum quality){
 		switch (quality) {
 		case Low:
-			SplitLowQualityImg(img);
+			splitLowQualityImg(img);
 			break;
 		case Normal:
-			SplitNormalQualityImg(img);
+			splitNormalQualityImg(img);
 			break;
 		case High:
-			SplitHighQualityImg(img);
+			splitHighQualityImg(img);
 			break;
 		default:
 			break;
 	}
 	}
 
-	private void SplitHighQualityImg(Bitmap img) {
+	private void splitHighQualityImg(Bitmap img) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	private void SplitNormalQualityImg(Bitmap img) {
+	private void splitNormalQualityImg(Bitmap img) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	private void SplitLowQualityImg(Bitmap img) {
+	private void splitLowQualityImg(Bitmap img) {
 		// TODO Auto-generated method stub
 		if (img.getHeight() == ImgLowQualityThreePages){
 			
-			SplitImgThreePages(img, ImgLowQualityWidth, ImgLowQualityThreePages);
+			splitImgThreePages(img, ImgLowQualityWidth, ImgLowQualityThreePages);
 		}
 		else if (img.getHeight() == ImgLowQualityEightPages){
 			
-			SplitImgEightPages(img, ImgLowQualityWidth, ImgLowQualityEightPages);
+			splitImgEightPages(img, ImgLowQualityWidth, ImgLowQualityEightPages);
 		}
 	}
 	
-	private void SplitImgThreePages(Bitmap img, int imgWidth, int imgHeight){
+	private void splitImgThreePages(Bitmap img, int imgWidth, int imgHeight){
 		StripImages = new Bitmap[3];
 		for (int i=0;i<3;i++){
 			int x;
@@ -71,7 +71,7 @@ public class StripSplitter {
 		}
 	}
 	
-	private void SplitImgEightPages(Bitmap img, int imgWidth, int imgHeight){
+	private void splitImgEightPages(Bitmap img, int imgWidth, int imgHeight){
 		StripImages = new Bitmap[8];
 		for (int i=0;i<8;i++){
 			int row = i / 4;
@@ -91,30 +91,34 @@ public class StripSplitter {
 		}
 	}
 	
-	public int GetTotalPages(){
+	public int getTotalPages(){
 		return StripImages.length;
 	}
 	
-	public Bitmap GetCurrentPage(){
+	public Bitmap getCurrentPage(){
 		return StripImages[currentPage];
 	}
 	
-	public Bitmap GetPreviousPage(){
+	public Bitmap getPreviousPage(){
 		if (currentPage>0){
 			currentPage -= 1;
 		}
 		return StripImages[currentPage];
 	}
 	
-	public Bitmap GetNextPage(){
-		if (currentPage<GetTotalPages()){
+	public Bitmap getNextPage(){
+		if (currentPage<getTotalPages()){
 			currentPage += 1;
 		}
 		return StripImages[currentPage];
 	}
 	
-	public int GetCurrentPageCount(){
+	public int getCurrentPageCount(){
 		return currentPage+1;
+	}
+	
+	public void resetPage(){
+		currentPage = 0;
 	}
 	
 }

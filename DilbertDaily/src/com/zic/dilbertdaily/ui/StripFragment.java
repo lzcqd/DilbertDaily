@@ -5,7 +5,11 @@ import com.zic.dilbertdaily.util.StateInfo;
 import com.zic.dilbertdaily.util.StateListener;
 import com.zic.dilbertdaily.util.StripManager;
 
+import android.app.ProgressDialog;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GestureDetectorCompat;
@@ -14,20 +18,25 @@ import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class StripFragment extends Fragment implements StateListener {
+public class StripFragment extends Fragment implements StateListener, OnClickListener{
 	private static final String TAG = "StripFragment";
-	private ImageView StripView;
-	private TextView StripPositionCount, StripName;
-	private RelativeLayout LoadingPanel;
+	private ImageView mStripView;
+	private TextView mStripPositionCount, mStripName;
 	private LinearLayout ErrorPanel;
-	private StripManager StripManager;
-
+	private LinearLayout mStripDateLayout;
+	private StripManager mStripManager;
+	private LoadingDialogFragment mLoadingDialog;
+	
 	public StripFragment() {
 	}
 
@@ -35,7 +44,14 @@ public class StripFragment extends Fragment implements StateListener {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
+		setLoadingDialog();
+	}
 
+	private void setLoadingDialog() {
+		mLoadingDialog = new LoadingDialogFragment(getActivity(),android.R.style.Theme_Black_NoTitleBar);
+		Drawable d = new ColorDrawable(Color.BLACK);
+		d.setAlpha(150);
+		mLoadingDialog.getWindow().setBackgroundDrawable(d);
 	}
 
 	@Override
@@ -43,34 +59,41 @@ public class StripFragment extends Fragment implements StateListener {
 			Bundle savedInstanceState) {
 		final View v = inflater.inflate(R.layout.strip_fragment, container,
 				false);
-
-		StripView = (ImageView) v.findViewById(R.id.stripContainer);
+		
+		mStripView = (ImageView) v.findViewById(R.id.stripContainer);
 		// StripView.setImageBitmap(BitmapFactory.decodeResource(getActivity().getResources(),
 		// R.drawable.empty_photo));
-		SetupImageGestureCapture(StripView);
+		setupImageGestureCapture(mStripView);
 
-		StripPositionCount = (TextView) v.findViewById(R.id.stripPosition);
-		StripName = (TextView) v.findViewById(R.id.stripName);
-
-		LoadingPanel = (RelativeLayout) v.findViewById(R.id.loadingPanel);
+		mStripPositionCount = (TextView) v.findViewById(R.id.stripPosition);
+		mStripName = (TextView) v.findViewById(R.id.stripName);
 
 		ErrorPanel = (LinearLayout) v.findViewById(R.id.errorPanel);
-
+		
+		mStripDateLayout = (LinearLayout) v.findViewById(R.id.strip_date_layout);
+		
 		TextView ErrorTextView = (TextView) v.findViewById(R.id.errorText);
-
-		StripManager = new StripManager(getActivity(), StripView, StripName,
-				StripPositionCount, ErrorTextView);
-
-		StripManager.AddListener(this);
-
-		StripManager.Start();
+		
+		ImageButton prevStripButton = (ImageButton) v.findViewById(R.id.previous_strip);
+		prevStripButton.setOnClickListener(this);
+		
+		ImageButton nextStripButton = (ImageButton) v.findViewById(R.id.next_strip);
+		nextStripButton.setOnClickListener(this);
+		
+		mStripManager = new StripManager(getActivity(), mStripView, mStripName,
+				mStripPositionCount, ErrorTextView);
+		
+		mStripManager.AddListener(this);
+		
+		mStripManager.Start();
 		// ShowLoadingViews();
 		// ShowErrorViews();
 
 		return v;
 	}
 
-	private void SetupImageGestureCapture(ImageView imageView) {
+
+	private void setupImageGestureCapture(ImageView imageView) {
 		// TODO Auto-generated method stub
 		final GestureDetector gesture = new GestureDetector(getActivity(),
 				new GestureDetector.SimpleOnGestureListener() {
@@ -91,10 +114,10 @@ public class StripFragment extends Fragment implements StateListener {
 								return false;
 							if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
 									&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-								StripManager.NextPage();
+								mStripManager.NextPage();
 							} else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
 									&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-								StripManager.PreviousPage();
+								mStripManager.PreviousPage();
 							}
 						} catch (Exception e) {
 							// nothing
@@ -111,51 +134,58 @@ public class StripFragment extends Fragment implements StateListener {
 		});
 	}
 
-	private void ShowLoadingViews() {
-		StripView.setAlpha((float) 0.3);
-		StripName.setAlpha((float) 0.3);
-		StripPositionCount.setAlpha((float) 0.3);
+	private void showLoadingViews() {
+		mLoadingDialog.show();		
 		ErrorPanel.setVisibility(View.GONE);
-		LoadingPanel.setVisibility(View.VISIBLE);
 	}
 
-	private void ShowErrorViews() {
-		StripView.setVisibility(View.GONE);
-		StripPositionCount.setVisibility(View.GONE);
-		StripName.setVisibility(View.GONE);
+	private void showErrorViews() {
+		mStripView.setVisibility(View.GONE);
+		mStripPositionCount.setVisibility(View.GONE);
+		mStripDateLayout.setVisibility(View.GONE);
 		ErrorPanel.setVisibility(View.VISIBLE);
-		LoadingPanel.setVisibility(View.GONE);
+		
 	}
 
-	private void ShowStripViews() {
-		StripView.setAlpha((float) 1.0);
-		StripPositionCount.setAlpha((float) 1.0);
-		LoadingPanel.setVisibility(View.GONE);
+	private void showStripViews() {
+		mLoadingDialog.dismiss();
 		ErrorPanel.setVisibility(View.GONE);
 	}
 
-	private void ShowStripName() {
-		StripName.setAlpha((float) 1.0);
-	}
 
 	@Override
-	public void StateChanged(StateInfo stateInfo) {
+	public void stateChanged(StateInfo stateInfo) {
 		switch (stateInfo.CurrentState) {
 		case Loading:
-			ShowLoadingViews();
+			showLoadingViews();
 			break;
 		case Error:
-			ShowErrorViews();
+			showErrorViews();
 			break;
 		case StripNameLoaded:
-			ShowStripName();
 			break;
 		case StripLoaded:
-			ShowStripViews();
+			showStripViews();
+			break;
+		case AlreadyLoadedLatest:
+			Toast.makeText(getActivity(), R.string.already_latest_strip, Toast.LENGTH_LONG).show();
 			break;
 		default:
 			break;
 		}
 
+	}
+	
+
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()){
+			case R.id.previous_strip:
+				mStripManager.previous_strip();
+				break;
+			case R.id.next_strip:
+				mStripManager.next_strip();
+		}
+		
 	}
 }
