@@ -77,16 +77,6 @@ public class StripManager {
 		listeners.add(add);
 	}
 
-	public void NextPage() {
-		// mViewPager.setImageBitmap(splitter.getNextPage());
-		// UpdateStripPositionCount();
-	}
-
-	public void PreviousPage() {
-		// mViewPager.setImageBitmap(splitter.getPreviousPage());
-		// UpdateStripPositionCount();
-	}
-
 	private class DownloadXmlTask extends
 			AsyncTask<String, Void, List<DilbertEntry>> {
 		Exception error;
@@ -190,14 +180,11 @@ public class StripManager {
 		@Override
 		protected void onPostExecute(Bitmap bitmap) {
 			if (bitmap != null) {
-				splitter.resetPage();
 				splitter.split(bitmap, quality);
 				mAdapter.setImages(splitter.getImages());
 				mAdapter.notifyDataSetChanged();
 				mViewPager.setCurrentItem(0, true);
 				mViewPager.invalidate();
-				// ImageContainer.setImageBitmap(splitter.getCurrentPage());
-				// UpdateStripPositionCount();
 				raiseStateChangedEvent(StateEnum.Loading, StateEnum.StripLoaded);
 			}
 		}
@@ -350,7 +337,6 @@ public class StripManager {
 		public Fragment getItem(int pageNum) {
 			// TODO Auto-generated method stub
 			if (images != null) {
-				// page.setImageView(img);
 				return new StripPager(images[pageNum]);
 			}
 			return new StripPager();

@@ -75,10 +75,6 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 		final View v = inflater.inflate(R.layout.strip_fragment, container,
 				false);
 		
-		//mStripView = (ImageView) v.findViewById(R.id.stripContainer);
-		// StripView.setImageBitmap(BitmapFactory.decodeResource(getActivity().getResources(),
-		// R.drawable.empty_photo));
-		//setupImageGestureCapture(mStripView);
 		
 		mStripPositionCount = (TextView) v.findViewById(R.id.stripPosition);
 
@@ -106,48 +102,6 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 		// ShowErrorViews();
 
 		return v;
-	}
-
-
-	private void setupImageGestureCapture(ImageView imageView) {
-		// TODO Auto-generated method stub
-		final GestureDetector gesture = new GestureDetector(getActivity(),
-				new GestureDetector.SimpleOnGestureListener() {
-					@Override
-					public boolean onDown(MotionEvent e) {
-						return true;
-					}
-
-					@Override
-					public boolean onFling(MotionEvent e1, MotionEvent e2,
-							float velocityX, float velocityY) {
-
-						final int SWIPE_MIN_DISTANCE = 50;
-						final int SWIPE_MAX_OFF_PATH = 250;
-						final int SWIPE_THRESHOLD_VELOCITY = 100;
-						try {
-							if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
-								return false;
-							if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
-									&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-								mStripManager.NextPage();
-							} else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
-									&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-								mStripManager.PreviousPage();
-							}
-						} catch (Exception e) {
-							// nothing
-						}
-						return super.onFling(e1, e2, velocityX, velocityY);
-					}
-				});
-
-		imageView.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				return gesture.onTouchEvent(event);
-			}
-		});
 	}
 
 	private void showLoadingViews() {

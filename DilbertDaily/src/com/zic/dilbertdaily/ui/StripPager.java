@@ -30,13 +30,4 @@ public class StripPager extends Fragment {
 		}
 		return v;
 	}
-
-	// public void setImageView(Bitmap img) {
-	//
-	// ImageView imageContainer = (ImageView) getFragmentManager()
-	// .getFragment(getArguments(), getTag()).getView()
-	// .findViewById(R.id.stripContainer);
-	//
-	// imageContainer.setImageBitmap(img);
-	// }
 }
