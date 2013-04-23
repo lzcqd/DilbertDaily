@@ -12,6 +12,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import com.zic.dilbertdaily.data.DilbertEntry;
 import com.zic.dilbertdaily.data.ImageQualityEnum;
 import com.zic.dilbertdaily.data.StateEnum;
+import com.zic.dilbertdaily.ui.StripPager;
 
 import android.accounts.NetworkErrorException;
 import android.content.Context;
@@ -20,13 +21,21 @@ import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 public class StripManager {
-	private ImageView ImageContainer;
+	private ViewPager mViewPager;
 	private TextView CurrentStripPositionView, StripNameView, ErrorTextView;
 	private Context currentContext;
+	private FragmentManager mFragmentManager;
 	List<StateListener> listeners = new ArrayList<StateListener>();
 	private static final String DilbertFeedUrl = "http://feed.dilbert.com/dilbert/daily_strip?format=xml";
 	private static final String DilberDateUrlPrefix = "http://dilbert.com/strips/comic/";
@@ -36,14 +45,24 @@ public class StripManager {
 	private StripDateManager dateManager = new StripDateManager();
 	private DilbertHtmlParser htmlParser = new DilbertHtmlParser();
 	private TitleUrlMappings loadedTitleUrlMappings = new TitleUrlMappings();
+	private StripAdapter mAdapter;
 
-	public StripManager(Context context, ImageView imageContainer,
+	// private StripPager mStripPager;
+
+	public StripManager(Context context, FragmentManager fm,
 			TextView... textViews) {
 		currentContext = context;
-		ImageContainer = imageContainer;
+		mFragmentManager = fm;
 		StripNameView = textViews[0];
 		CurrentStripPositionView = textViews[1];
 		ErrorTextView = textViews[2];
+		mAdapter = new StripAdapter(fm, splitter.getImages());
+	}
+
+	public void setViewPager(ViewPager viewPager) {
+		mViewPager = viewPager;
+		viewPager.setAdapter(mAdapter);
+		mViewPager.setPageTransformer(true, new DepthPageTransformer());
 	}
 
 	public void Start() {
@@ -59,13 +78,13 @@ public class StripManager {
 	}
 
 	public void NextPage() {
-		ImageContainer.setImageBitmap(splitter.getNextPage());
-		UpdateStripPositionCount();
+		// mViewPager.setImageBitmap(splitter.getNextPage());
+		// UpdateStripPositionCount();
 	}
 
 	public void PreviousPage() {
-		ImageContainer.setImageBitmap(splitter.getPreviousPage());
-		UpdateStripPositionCount();
+		// mViewPager.setImageBitmap(splitter.getPreviousPage());
+		// UpdateStripPositionCount();
 	}
 
 	private class DownloadXmlTask extends
@@ -173,8 +192,12 @@ public class StripManager {
 			if (bitmap != null) {
 				splitter.resetPage();
 				splitter.split(bitmap, quality);
-				ImageContainer.setImageBitmap(splitter.getCurrentPage());
-				UpdateStripPositionCount();
+				mAdapter.setImages(splitter.getImages());
+				mAdapter.notifyDataSetChanged();
+				mViewPager.setCurrentItem(0, true);
+				mViewPager.invalidate();
+				// ImageContainer.setImageBitmap(splitter.getCurrentPage());
+				// UpdateStripPositionCount();
 				raiseStateChangedEvent(StateEnum.Loading, StateEnum.StripLoaded);
 			}
 		}
@@ -227,9 +250,11 @@ public class StripManager {
 		ErrorTextView.setText(errorMsg + "\nClick to Refresh");
 	}
 
-	private void UpdateStripPositionCount() {
-		CurrentStripPositionView.setText(splitter.getCurrentPageCount() + "/"
-				+ splitter.getTotalPages());
+	private void UpdateStripPositionCount(int currentPos) {
+		if (splitter != null && splitter.getTotalPages() != 1) {
+			CurrentStripPositionView.setText(currentPos + "/"
+					+ splitter.getTotalPages());
+		}
 	}
 
 	private class getImgUrlFromHtmlTask extends AsyncTask<String, Void, String> {
@@ -310,5 +335,85 @@ public class StripManager {
 			new getImgUrlFromHtmlTask().execute(link);
 		}
 
+	}
+
+	public class StripAdapter extends FragmentStatePagerAdapter {
+		private Bitmap[] images;
+
+		public StripAdapter(FragmentManager fm, Bitmap[] strips) {
+			super(fm);
+			// TODO Auto-generated constructor stub
+			images = strips;
+		}
+
+		@Override
+		public Fragment getItem(int pageNum) {
+			// TODO Auto-generated method stub
+			if (images != null) {
+				// page.setImageView(img);
+				return new StripPager(images[pageNum]);
+			}
+			return new StripPager();
+
+		}
+
+		@Override
+		public int getCount() {
+			// TODO Auto-generated method stub
+			return splitter.getTotalPages();
+		}
+
+		@Override
+		public int getItemPosition(Object obj) {
+			return POSITION_NONE;
+		}
+		
+		@Override
+		public void setPrimaryItem(ViewGroup container, int position, Object object){
+			super.setPrimaryItem(container, position, object);
+			UpdateStripPositionCount(position+1);
+		}
+
+		public void setImages(Bitmap[] imgs) {
+			images = imgs;
+		}
+
+	}
+
+	public class DepthPageTransformer implements ViewPager.PageTransformer {
+		private static final float MIN_SCALE = 0.75f;
+
+		public void transformPage(View view, float position) {
+			int pageWidth = view.getWidth();
+
+			if (position < -1) { // [-Infinity,-1)
+				// This page is way off-screen to the left.
+				view.setAlpha(0);
+
+			} else if (position <= 0) { // [-1,0]
+				// Use the default slide transition when moving to the left page
+				view.setAlpha(1);
+				view.setTranslationX(0);
+				view.setScaleX(1);
+				view.setScaleY(1);
+
+			} else if (position <= 1) { // (0,1]
+				// Fade the page out.
+				view.setAlpha(1 - position);
+
+				// Counteract the default slide transition
+				view.setTranslationX(pageWidth * -position);
+
+				// Scale the page down (between MIN_SCALE and 1)
+				float scaleFactor = MIN_SCALE + (1 - MIN_SCALE)
+						* (1 - Math.abs(position));
+				view.setScaleX(scaleFactor);
+				view.setScaleY(scaleFactor);
+
+			} else { // (1,+Infinity]
+				// This page is way off-screen to the right.
+				view.setAlpha(0);
+			}
+		}
 	}
 }

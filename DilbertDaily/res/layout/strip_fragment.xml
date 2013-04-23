@@ -20,49 +20,54 @@
             android:minHeight="288dp"
             android:orientation="vertical" >
 
-            <ImageView
-                android:id="@+id/stripContainer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter"
-                android:src="@drawable/empty_photo" />
+            <!-- <ImageView -->
+            <!-- android:id="@+id/stripContainer" -->
+            <!-- android:layout_width="match_parent" -->
+            <!-- android:layout_height="match_parent" -->
+            <!-- android:layout_weight="1" -->
+            <!-- android:adjustViewBounds="true" -->
+            <!-- android:scaleType="fitCenter" -->
+            <!-- android:src="@drawable/empty_photo" /> -->
 
-            <TextView
-                android:id="@+id/stripPosition"
+            <android.support.v4.view.ViewPager
+                android:id="@+id/stripPager"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:gravity="center"
-                android:paddingLeft="@dimen/textview_padding"
-                android:paddingRight="@dimen/textview_padding"
-                android:textColor="@color/White" />
+                android:layout_height="288dp" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/stripPosition"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/frameContainer"
+            android:gravity="center"
+            android:paddingLeft="@dimen/textview_padding"
+            android:paddingRight="@dimen/textview_padding"
+            android:textColor="@color/White" />
 
         <LinearLayout
             android:id="@+id/strip_date_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@id/frameContainer"
-            android:orientation="horizontal"
             android:background="@drawable/tab_background"
+            android:orientation="horizontal"
             android:paddingLeft="@dimen/textview_padding"
             android:paddingRight="@dimen/textview_padding" >
-			
+
             <ImageButton
                 android:id="@+id/previous_strip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/navigation_previous_button"
                 android:layout_gravity="center"
+                android:background="@drawable/navigation_previous_button"
                 android:paddingLeft="@dimen/textview_padding" />
-            
+
             <TextView
                 android:id="@+id/stripName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                
+                android:layout_weight="1"
                 android:gravity="center"
                 android:paddingBottom="@dimen/textview_padding"
                 android:paddingLeft="@dimen/button_padding"
@@ -70,17 +75,15 @@
                 android:paddingTop="@dimen/textview_padding"
                 android:textColor="@color/White"
                 android:textSize="18sp"
-                android:textStyle="bold|italic"
-                android:layout_weight="1" />
-            
+                android:textStyle="bold|italic" />
+
             <ImageButton
                 android:id="@+id/next_strip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/navigation_next_button"
                 android:layout_gravity="center"
+                android:background="@drawable/navigation_next_button"
                 android:paddingRight="@dimen/textview_padding" />
-            
         </LinearLayout>
     </RelativeLayout>
 

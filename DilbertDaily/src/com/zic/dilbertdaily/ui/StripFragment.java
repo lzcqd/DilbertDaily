@@ -1,18 +1,22 @@
 package com.zic.dilbertdaily.ui;
 
+
+
 import com.zic.dilbertdaily.R;
 import com.zic.dilbertdaily.util.StateInfo;
 import com.zic.dilbertdaily.util.StateListener;
 import com.zic.dilbertdaily.util.StripManager;
 
-import android.app.ProgressDialog;
-import android.graphics.BitmapFactory;
+
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.GestureDetectorCompat;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+
+import android.support.v4.view.ViewPager;
 
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -20,11 +24,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
+
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,8 +40,19 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 	private LinearLayout mStripDateLayout;
 	private StripManager mStripManager;
 	private LoadingDialogFragment mLoadingDialog;
+	private ViewPager mPager;
+	//private StripAdapter mAdapter;
 	
 	public StripFragment() {
+	}
+	
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState){
+		super.onActivityCreated(savedInstanceState);
+		//mAdapter = new StripAdapter(getFragmentManager());
+		mPager = (ViewPager) getView().findViewById(R.id.stripPager);
+		mStripManager.setViewPager(mPager);
+		//mPager.setAdapter(mAdapter);
 	}
 
 	@Override
@@ -60,14 +75,15 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 		final View v = inflater.inflate(R.layout.strip_fragment, container,
 				false);
 		
-		mStripView = (ImageView) v.findViewById(R.id.stripContainer);
+		//mStripView = (ImageView) v.findViewById(R.id.stripContainer);
 		// StripView.setImageBitmap(BitmapFactory.decodeResource(getActivity().getResources(),
 		// R.drawable.empty_photo));
-		setupImageGestureCapture(mStripView);
-
+		//setupImageGestureCapture(mStripView);
+		
 		mStripPositionCount = (TextView) v.findViewById(R.id.stripPosition);
-		mStripName = (TextView) v.findViewById(R.id.stripName);
 
+		mStripName = (TextView) v.findViewById(R.id.stripName);
+		
 		ErrorPanel = (LinearLayout) v.findViewById(R.id.errorPanel);
 		
 		mStripDateLayout = (LinearLayout) v.findViewById(R.id.strip_date_layout);
@@ -80,7 +96,7 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 		ImageButton nextStripButton = (ImageButton) v.findViewById(R.id.next_strip);
 		nextStripButton.setOnClickListener(this);
 		
-		mStripManager = new StripManager(getActivity(), mStripView, mStripName,
+		mStripManager = new StripManager(getActivity(), getFragmentManager() , mStripName,
 				mStripPositionCount, ErrorTextView);
 		
 		mStripManager.AddListener(this);
@@ -140,7 +156,7 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 	}
 
 	private void showErrorViews() {
-		mStripView.setVisibility(View.GONE);
+		//mStripView.setVisibility(View.GONE);
 		mStripPositionCount.setVisibility(View.GONE);
 		mStripDateLayout.setVisibility(View.GONE);
 		ErrorPanel.setVisibility(View.VISIBLE);
@@ -188,4 +204,6 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 		}
 		
 	}
+	
+	
 }

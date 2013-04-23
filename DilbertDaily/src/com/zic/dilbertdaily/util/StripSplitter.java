@@ -92,6 +92,9 @@ public class StripSplitter {
 	}
 	
 	public int getTotalPages(){
+		if (StripImages == null){
+			return 1;
+		}
 		return StripImages.length;
 	}
 	
@@ -119,6 +122,17 @@ public class StripSplitter {
 	
 	public void resetPage(){
 		currentPage = 0;
+	}
+	
+	public Bitmap getPage(int pageNum){
+		if (StripImages==null){
+			return null;
+		}
+		return StripImages[pageNum];
+	}
+	
+	public Bitmap[] getImages(){
+		return StripImages;
 	}
 	
 }
