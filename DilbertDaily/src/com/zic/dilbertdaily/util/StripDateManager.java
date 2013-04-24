@@ -9,7 +9,8 @@ import java.util.GregorianCalendar;
 public class StripDateManager {
 	private final SimpleDateFormat dilbertDateFormat = new SimpleDateFormat(
 			"MMMMM d, yyyy");
-	private final SimpleDateFormat returnDateStringFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private final SimpleDateFormat returnDateStringFormat = new SimpleDateFormat(
+			"yyyy-MM-dd");
 	private Date latestStripDate;
 	private Calendar latestStripCal;
 	private Calendar currentStripCal;
@@ -33,27 +34,28 @@ public class StripDateManager {
 	}
 
 	public Date dateConversion(String dilbertTitle) throws ParseException {
-		String dateString = dilbertTitle.substring(10);
+		String dateString = dilbertTitle.replace("Comic for ", "");
 		return dilbertDateFormat.parse(dateString);
 	}
 
-	
-	public String prevStripDate(){
+	public String prevStripDate() {
 		currentStripCal.add(Calendar.DAY_OF_MONTH, -1);
 		Date date = currentStripCal.getTime();
 		return returnDateStringFormat.format(date);
 	}
-	
-	public String nextStripDate(){
+
+	public String nextStripDate() {
+		if (currentStripCal.compareTo(latestStripCal) >= 0) {
+			return null;
+		}
 		currentStripCal.add(Calendar.DAY_OF_MONTH, 1);
 		Date date = currentStripCal.getTime();
 		return returnDateStringFormat.format(date);
 	}
-	
-	public String getCurrDateTitle(){
+
+	public String getCurrDateTitle() {
 		Date date = currentStripCal.getTime();
 		return "Comic for " + dilbertDateFormat.format(date);
 	}
-
 
 }

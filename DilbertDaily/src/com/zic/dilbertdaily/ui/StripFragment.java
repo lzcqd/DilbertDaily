@@ -41,7 +41,7 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 	private StripManager mStripManager;
 	private LoadingDialogFragment mLoadingDialog;
 	private ViewPager mPager;
-	//private StripAdapter mAdapter;
+	
 	
 	public StripFragment() {
 	}
@@ -49,10 +49,10 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState){
 		super.onActivityCreated(savedInstanceState);
-		//mAdapter = new StripAdapter(getFragmentManager());
+		
 		mPager = (ViewPager) getView().findViewById(R.id.stripPager);
 		mStripManager.setViewPager(mPager);
-		//mPager.setAdapter(mAdapter);
+		
 	}
 
 	@Override
@@ -95,9 +95,9 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 		mStripManager = new StripManager(getActivity(), getFragmentManager() , mStripName,
 				mStripPositionCount, ErrorTextView);
 		
-		mStripManager.AddListener(this);
+		mStripManager.addListener(this);
 		
-		mStripManager.Start();
+		mStripManager.start();
 		// ShowLoadingViews();
 		// ShowErrorViews();
 
@@ -110,7 +110,7 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 	}
 
 	private void showErrorViews() {
-		//mStripView.setVisibility(View.GONE);
+		
 		mStripPositionCount.setVisibility(View.GONE);
 		mStripDateLayout.setVisibility(View.GONE);
 		ErrorPanel.setVisibility(View.VISIBLE);
@@ -138,6 +138,7 @@ public class StripFragment extends Fragment implements StateListener, OnClickLis
 			showStripViews();
 			break;
 		case AlreadyLoadedLatest:
+			showStripViews();
 			Toast.makeText(getActivity(), R.string.already_latest_strip, Toast.LENGTH_LONG).show();
 			break;
 		default:

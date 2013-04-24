@@ -1,15 +1,18 @@
 package com.zic.dilbertdaily.util;
 
+import java.util.Date;
 import java.util.HashMap;
 
 public class TitleUrlMappings {
 	HashMap<String, DilbertImageUrl> mappings = new HashMap<String, DilbertImageUrl>();
-	
-	public void addMapping(String title,DilbertImageUrl url){
-		mappings.put(title, url);
+
+	public void addMapping(String date, DilbertImageUrl url) {
+		if (!mappings.containsKey(date)) {
+			mappings.put(date, url);
+		}
 	}
-	
-	public DilbertImageUrl getMapping(String title){
-		return mappings.get(title);
+
+	public DilbertImageUrl getMapping(String date) {
+		return mappings.get(date);
 	}
 }
