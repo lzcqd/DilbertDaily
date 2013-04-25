@@ -34,7 +34,7 @@ import android.widget.TextView;
 
 public class StripManager {
 	private ViewPager mViewPager;
-	private TextView CurrentStripPositionView, StripNameView, ErrorTextView;
+	private TextView mCurrentStripPositionView, mStripNameView, mErrorTextView;
 	private Context currentContext;
 	private FragmentManager mFragmentManager;
 	List<StateListener> listeners = new ArrayList<StateListener>();
@@ -47,14 +47,17 @@ public class StripManager {
 	private DilbertHtmlParser htmlParser = new DilbertHtmlParser();
 	private TitleUrlMappings loadedTitleUrlMappings = new TitleUrlMappings();
 	private StripAdapter mAdapter;
+	private DownloadXmlTask downloadXmlTask;
+	private DownloadImgTask downloadImgTask;
+	private GetImgUrlFromHtmlTask getImgUrlFromHtmlTask;
 
 	public StripManager(Context context, FragmentManager fm,
 			TextView... textViews) {
 		currentContext = context;
 		mFragmentManager = fm;
-		StripNameView = textViews[0];
-		CurrentStripPositionView = textViews[1];
-		ErrorTextView = textViews[2];
+		mStripNameView = textViews[0];
+		mCurrentStripPositionView = textViews[1];
+		mErrorTextView = textViews[2];
 		mAdapter = new StripAdapter(fm, splitter.getImages());
 	}
 
@@ -65,11 +68,19 @@ public class StripManager {
 	}
 
 	public void start() {
-		new DownloadXmlTask().execute(DilbertFeedUrl);
+
+		downloadXmlTask = new DownloadXmlTask();
+
+		downloadXmlTask.execute(DilbertFeedUrl);
+
 	}
 
 	private void downloadStrip(String stripUrl) {
-		new DownloadImgTask().execute(stripUrl);
+
+		downloadImgTask = new DownloadImgTask();
+
+		downloadImgTask.execute(stripUrl);
+
 	}
 
 	public void addListener(StateListener add) {
@@ -88,6 +99,9 @@ public class StripManager {
 		@Override
 		protected List<DilbertEntry> doInBackground(String... urls) {
 			try {
+				if (isCancelled()) {
+					return null;
+				}
 				return loadXmlFromNetwork(urls[0]);
 			} catch (NetworkErrorException e) {
 				// TODO Auto-generated catch block
@@ -120,12 +134,13 @@ public class StripManager {
 								new DilbertImageUrl(entry.description));
 					}
 					dateManager.initStripDate(latestStripTitle);
-					StripNameView.setText(latestStripTitle);
+					mStripNameView.setText(latestStripTitle);
 					DilbertImageUrl url = loadedTitleUrlMappings
 							.getMapping(latestStripTitle);
 					downloadStrip(url.getUrl(quality));
-				}else{
-					raiseStateChangedEvent(StateEnum.StripLoaded,StateEnum.AlreadyLoadedLatest);
+				} else {
+					raiseStateChangedEvent(StateEnum.StripLoaded,
+							StateEnum.AlreadyLoadedLatest);
 				}
 			} else {
 				if (error != null) {
@@ -144,6 +159,12 @@ public class StripManager {
 			}
 		}
 
+		@Override
+		protected void onCancelled() {
+			// dateManager.rollbackDate();
+			// raiseStateChangedEvent(StateEnum.Loading, StateEnum.Cancelled);
+		}
+
 	}
 
 	private class DownloadImgTask extends AsyncTask<String, Void, Bitmap> {
@@ -160,6 +181,9 @@ public class StripManager {
 			Bitmap bitmap = null;
 
 			try {
+				if (isCancelled()) {
+					return null;
+				}
 				is = downloadUrl(urls[0]);
 				bitmap = BitmapFactory.decodeStream(is);
 			} catch (NetworkErrorException e) {
@@ -184,12 +208,20 @@ public class StripManager {
 		protected void onPostExecute(Bitmap bitmap) {
 			if (bitmap != null) {
 				splitter.split(bitmap, quality);
+
 				mAdapter.setImages(splitter.getImages());
 				mAdapter.notifyDataSetChanged();
 				mViewPager.setCurrentItem(0, true);
 				mViewPager.invalidate();
 				raiseStateChangedEvent(StateEnum.Loading, StateEnum.StripLoaded);
 			}
+		}
+
+		@Override
+		protected void onCancelled() {
+			// dateManager.rollbackDate();
+			// mStripNameView.setText(dateManager.getCurrDateTitle());
+			// raiseStateChangedEvent(StateEnum.Loading, StateEnum.Cancelled);
 		}
 
 	}
@@ -237,17 +269,17 @@ public class StripManager {
 	}
 
 	private void setErrorText(String errorMsg) {
-		ErrorTextView.setText(errorMsg + "\nClick to Refresh");
+		mErrorTextView.setText(errorMsg + "\nClick to Refresh");
 	}
 
 	private void updateStripPositionCount(int currentPos) {
 		if (splitter != null && splitter.getTotalPages() != 1) {
-			CurrentStripPositionView.setText(currentPos + "/"
+			mCurrentStripPositionView.setText(currentPos + "/"
 					+ splitter.getTotalPages());
 		}
 	}
 
-	private class getImgUrlFromHtmlTask extends AsyncTask<String, Void, String> {
+	private class GetImgUrlFromHtmlTask extends AsyncTask<String, Void, String> {
 		Exception error;
 
 		@Override
@@ -259,6 +291,9 @@ public class StripManager {
 		protected String doInBackground(String... urls) {
 			// TODO Auto-generated method stub
 			try {
+				if (isCancelled()) {
+					return null;
+				}
 				return htmlParser.getImageUrl(urls[0]);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -274,11 +309,17 @@ public class StripManager {
 				String title = dateManager.getCurrDateTitle();
 				DilbertImageUrl url = new DilbertImageUrl(imgUrl);
 				loadedTitleUrlMappings.addMapping(title, url);
-				StripNameView.setText(title);
+				mStripNameView.setText(title);
 				downloadStrip(url.getUrl(quality));
 			} else {
 
 			}
+		}
+
+		@Override
+		protected void onCancelled() {
+			// dateManager.rollbackDate();
+			// raiseStateChangedEvent(StateEnum.Loading, StateEnum.Cancelled);
 		}
 
 	}
@@ -299,16 +340,14 @@ public class StripManager {
 	}
 
 	public void previous_strip() {
-
 		String dateString = dateManager.prevStripDate();
 		String title = dateManager.getCurrDateTitle();
 		DilbertImageUrl cachedUrl = loadedTitleUrlMappings.getMapping(title);
 		if (cachedUrl != null) {
-			StripNameView.setText(title);
+			mStripNameView.setText(title);
 			downloadStrip(cachedUrl.getUrl(quality));
 		} else {
-			String link = get_xml_by_date(dateString);
-			new getImgUrlFromHtmlTask().execute(link);
+			downloadHtml(dateString);
 		}
 
 	}
@@ -322,13 +361,53 @@ public class StripManager {
 		String title = dateManager.getCurrDateTitle();
 		DilbertImageUrl cachedUrl = loadedTitleUrlMappings.getMapping(title);
 		if (cachedUrl != null) {
-			StripNameView.setText(title);
+			mStripNameView.setText(title);
 			downloadStrip(cachedUrl.getUrl(quality));
 		} else {
-			String link = get_xml_by_date(dateString);
-			new getImgUrlFromHtmlTask().execute(link);
+			downloadHtml(dateString);
 		}
 
+	}
+
+	private void downloadHtml(String dateString) {
+		String link = get_xml_by_date(dateString);
+
+		getImgUrlFromHtmlTask = new GetImgUrlFromHtmlTask();
+
+		getImgUrlFromHtmlTask.execute(link);
+	}
+
+	public void onCancelLoading() {
+		if (isRunning(downloadXmlTask)) {
+			cancelAsyncTask(downloadXmlTask);
+			dateManager.rollbackDate();
+			raiseStateChangedEvent(StateEnum.Loading, StateEnum.Cancelled);
+			downloadXmlTask = null;
+		}
+		if (isRunning(getImgUrlFromHtmlTask)) {
+			cancelAsyncTask(getImgUrlFromHtmlTask);
+			dateManager.rollbackDate();
+			raiseStateChangedEvent(StateEnum.Loading, StateEnum.Cancelled);
+			getImgUrlFromHtmlTask = null;
+		}
+		if (isRunning(downloadImgTask)) {
+			cancelAsyncTask(downloadImgTask);
+			dateManager.rollbackDate();
+			mStripNameView.setText(dateManager.getCurrDateTitle());
+			raiseStateChangedEvent(StateEnum.Loading, StateEnum.Cancelled);
+			downloadImgTask = null;
+		}
+
+	}
+
+	private boolean isRunning(AsyncTask asyncTask) {
+		return asyncTask != null
+				&& asyncTask.getStatus() == AsyncTask.Status.RUNNING;
+	}
+
+	private void cancelAsyncTask(AsyncTask asyncTask) {
+		// TODO Auto-generated method stub
+		asyncTask.cancel(true);
 	}
 
 	public class StripAdapter extends FragmentStatePagerAdapter {

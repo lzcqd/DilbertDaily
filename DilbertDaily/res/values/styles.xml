@@ -30,9 +30,4 @@
         <item name="android:gravity">center</item>
     </style>
 
-    <style name="Theme.CustomDialog" parent="android:Theme.Dialog">
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-    </style>
-
 </resources>

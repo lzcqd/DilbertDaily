@@ -2,13 +2,16 @@ package com.zic.dilbertdaily.ui;
 
 import com.zic.dilbertdaily.R;
 import com.zic.dilbertdaily.R.layout;
+import com.zic.dilbertdaily.util.StripManager;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -26,29 +29,36 @@ import android.view.ViewGroup;
  * factory method to create an instance of this fragment.
  * 
  */
-public class LoadingDialogFragment extends Dialog {
-
-	public LoadingDialogFragment(Context context) {
-		super(context);
-		// TODO Auto-generated constructor stub
-		this.setContentView(R.layout.fragment_loading_dialog);
+public class LoadingDialogFragment extends DialogFragment {
+	private StripManager mStripManager;
+	
+	public LoadingDialogFragment(StripManager manager){
+		super();
+		mStripManager = manager;
 	}
-
-	public LoadingDialogFragment(Context context,
-			int theme) {
-		// TODO Auto-generated constructor stub
-		super(context,theme);
-		this.setContentView(R.layout.fragment_loading_dialog);
+	
+	@Override
+	public void onCreate(Bundle savedInstanceState){
+		super.onCreate(savedInstanceState);
+		this.setStyle(STYLE_NO_TITLE, android.R.style.Theme);
 	}
-
-	// @Override
-	// public Dialog onCreateDialog(Bundle savedInstanceState){
-	// AlertDialog.Builder builder = new
-	// AlertDialog.Builder(getActivity(),DialogFragment.STYLE_NO_TITLE);
-	// LayoutInflater inflator = getActivity().getLayoutInflater();
-	// builder.setView(inflator.inflate(R.layout.fragment_loading_dialog,
-	// null));
-	// return builder.create();
-	// }
+	
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+		View v = inflater.inflate(R.layout.fragment_loading_dialog, container,false);
+		Drawable bg = new ColorDrawable(Color.BLACK);
+		bg.setAlpha(150);
+		getDialog().getWindow().setBackgroundDrawable(bg);
+		return v;
+	}
+	
+	@Override
+	public void onCancel(DialogInterface dialog){
+		if (mStripManager!=null){
+			mStripManager.onCancelLoading();
+		}
+		super.onCancel(dialog);
+	}
 
 }

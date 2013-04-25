@@ -14,6 +14,7 @@ public class StripDateManager {
 	private Date latestStripDate;
 	private Calendar latestStripCal;
 	private Calendar currentStripCal;
+	private Date rollbackStripDate;
 
 	public StripDateManager() {
 		latestStripCal = new GregorianCalendar();
@@ -39,12 +40,14 @@ public class StripDateManager {
 	}
 
 	public String prevStripDate() {
+		rollbackStripDate = currentStripCal.getTime();
 		currentStripCal.add(Calendar.DAY_OF_MONTH, -1);
 		Date date = currentStripCal.getTime();
 		return returnDateStringFormat.format(date);
 	}
 
 	public String nextStripDate() {
+		rollbackStripDate = currentStripCal.getTime();
 		if (currentStripCal.compareTo(latestStripCal) >= 0) {
 			return null;
 		}
@@ -57,5 +60,10 @@ public class StripDateManager {
 		Date date = currentStripCal.getTime();
 		return "Comic for " + dilbertDateFormat.format(date);
 	}
+	
+	public void rollbackDate(){
+		currentStripCal.setTime(rollbackStripDate);
+	}
+	
 
 }

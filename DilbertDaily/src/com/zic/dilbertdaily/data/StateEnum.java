@@ -6,5 +6,6 @@ public enum StateEnum {
 	StripNameLoaded,
 	StripLoaded,
 	Initialised,
-	AlreadyLoadedLatest
+	AlreadyLoadedLatest,
+	Cancelled
 }
