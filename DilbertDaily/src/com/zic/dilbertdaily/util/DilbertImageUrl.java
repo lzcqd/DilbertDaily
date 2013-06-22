@@ -11,7 +11,7 @@ public class DilbertImageUrl {
 		if (imageUrl.contains("print")){
 			setLowQualityUrl(imageUrl);
 			setNormalQualityUrl(imageUrl.replace("print.", ""));
-			setHighQualityUrl(imageUrl.replace("zoom", "print"));
+			setHighQualityUrl(imageUrl.replace("print", "zoom"));
 		}
 		else if (imageUrl.contains("zoom")){
 			setLowQualityUrl(imageUrl.replace("zoom", "print"));

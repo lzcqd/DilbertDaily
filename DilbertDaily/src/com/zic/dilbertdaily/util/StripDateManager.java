@@ -6,6 +6,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import com.zic.dilbertdaily.data.ColorConstants;
+
+import android.graphics.drawable.Drawable;
+
 public class StripDateManager {
 	private final SimpleDateFormat dilbertDateFormat = new SimpleDateFormat(
 			"MMMMM d, yyyy");
@@ -65,5 +69,19 @@ public class StripDateManager {
 		currentStripCal.setTime(rollbackStripDate);
 	}
 	
+	public int getCurrDateColor(){
+		int dayOfWeek = currentStripCal.get(Calendar.DAY_OF_WEEK);
+		switch (dayOfWeek){
+			case 1: return ColorConstants.PURPLE;
+			case 2: return ColorConstants.RED;
+			case 3: return ColorConstants.ORANGE;
+			case 4: return ColorConstants.YELLOW;
+			case 5: return ColorConstants.GREEN;
+			case 6: return ColorConstants.BLUE;
+			case 7: return ColorConstants.AZURE;
+			default: return ColorConstants.GREY;
+		}
+			
+	}
 
 }

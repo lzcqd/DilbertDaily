@@ -8,5 +8,9 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="already_latest_strip">This is the latest strip.</string>
 	<string name="loading_cancelled">Loading Cancelled</string>
+	<string name="image_quality">Select Image Quality</string>
+	<string name="image_quality_low">Low Quality</string>
+	<string name="image_quality_normal">Normal Quality</string>
+	<string name="image_quality_high">High Quality</string>
 	
 </resources>

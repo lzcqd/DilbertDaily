@@ -12,7 +12,7 @@
         android:paddingTop="@dimen/activity_vertical_margin"
         tools:context=".StripActivity" >
 
-        <LinearLayout
+       <LinearLayout
             android:id="@+id/frameContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -20,14 +20,7 @@
             android:minHeight="288dp"
             android:orientation="vertical" >
 
-            <!-- <ImageView -->
-            <!-- android:id="@+id/stripContainer" -->
-            <!-- android:layout_width="match_parent" -->
-            <!-- android:layout_height="match_parent" -->
-            <!-- android:layout_weight="1" -->
-            <!-- android:adjustViewBounds="true" -->
-            <!-- android:scaleType="fitCenter" -->
-            <!-- android:src="@drawable/empty_photo" /> -->
+            
 
             <android.support.v4.view.ViewPager
                 android:id="@+id/stripPager"

@@ -19,6 +19,10 @@ import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.*;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -30,18 +34,20 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class StripManager {
 	private ViewPager mViewPager;
 	private TextView mCurrentStripPositionView, mStripNameView, mErrorTextView;
+	private LinearLayout dateContainer;
 	private Context currentContext;
 	private FragmentManager mFragmentManager;
 	List<StateListener> listeners = new ArrayList<StateListener>();
 	private static final String DilbertFeedUrl = "http://feed.dilbert.com/dilbert/daily_strip?format=xml";
 	private static final String DilberDateUrlPrefix = "http://dilbert.com/strips/comic/";
 	private static final String DilbertBaseUrl = "http://dilbert.com";
-	protected ImageQualityEnum quality = ImageQualityEnum.Low;
+	protected ImageQualityEnum mQuality = ImageQualityEnum.Low;
 	private StripSplitter splitter = new StripSplitter();
 	private StripDateManager dateManager = new StripDateManager();
 	private DilbertHtmlParser htmlParser = new DilbertHtmlParser();
@@ -51,7 +57,7 @@ public class StripManager {
 	private DownloadImgTask downloadImgTask;
 	private GetImgUrlFromHtmlTask getImgUrlFromHtmlTask;
 
-	public StripManager(Context context, FragmentManager fm,
+	public StripManager(Context context, FragmentManager fm,LinearLayout dateLayout,
 			TextView... textViews) {
 		currentContext = context;
 		mFragmentManager = fm;
@@ -59,6 +65,7 @@ public class StripManager {
 		mCurrentStripPositionView = textViews[1];
 		mErrorTextView = textViews[2];
 		mAdapter = new StripAdapter(fm, splitter.getImages());
+		dateContainer = dateLayout;
 	}
 
 	public void setViewPager(ViewPager viewPager) {
@@ -135,9 +142,12 @@ public class StripManager {
 					}
 					dateManager.initStripDate(latestStripTitle);
 					mStripNameView.setText(latestStripTitle);
+					
+					setDateBackgroundColor();
+					
 					DilbertImageUrl url = loadedTitleUrlMappings
 							.getMapping(latestStripTitle);
-					downloadStrip(url.getUrl(quality));
+					downloadStrip(url.getUrl(mQuality));
 				} else {
 					raiseStateChangedEvent(StateEnum.StripLoaded,
 							StateEnum.AlreadyLoadedLatest);
@@ -158,6 +168,8 @@ public class StripManager {
 				}
 			}
 		}
+
+		
 
 		@Override
 		protected void onCancelled() {
@@ -207,7 +219,7 @@ public class StripManager {
 		@Override
 		protected void onPostExecute(Bitmap bitmap) {
 			if (bitmap != null) {
-				splitter.split(bitmap, quality);
+				splitter.split(bitmap, mQuality);
 
 				mAdapter.setImages(splitter.getImages());
 				mAdapter.notifyDataSetChanged();
@@ -310,7 +322,8 @@ public class StripManager {
 				DilbertImageUrl url = new DilbertImageUrl(imgUrl);
 				loadedTitleUrlMappings.addMapping(title, url);
 				mStripNameView.setText(title);
-				downloadStrip(url.getUrl(quality));
+				setDateBackgroundColor();
+				downloadStrip(url.getUrl(mQuality));
 			} else {
 
 			}
@@ -345,7 +358,8 @@ public class StripManager {
 		DilbertImageUrl cachedUrl = loadedTitleUrlMappings.getMapping(title);
 		if (cachedUrl != null) {
 			mStripNameView.setText(title);
-			downloadStrip(cachedUrl.getUrl(quality));
+			setDateBackgroundColor();
+			downloadStrip(cachedUrl.getUrl(mQuality));
 		} else {
 			downloadHtml(dateString);
 		}
@@ -362,7 +376,8 @@ public class StripManager {
 		DilbertImageUrl cachedUrl = loadedTitleUrlMappings.getMapping(title);
 		if (cachedUrl != null) {
 			mStripNameView.setText(title);
-			downloadStrip(cachedUrl.getUrl(quality));
+			setDateBackgroundColor();
+			downloadStrip(cachedUrl.getUrl(mQuality));
 		} else {
 			downloadHtml(dateString);
 		}
@@ -394,6 +409,7 @@ public class StripManager {
 			cancelAsyncTask(downloadImgTask);
 			dateManager.rollbackDate();
 			mStripNameView.setText(dateManager.getCurrDateTitle());
+			setDateBackgroundColor();
 			raiseStateChangedEvent(StateEnum.Loading, StateEnum.Cancelled);
 			downloadImgTask = null;
 		}
@@ -488,5 +504,24 @@ public class StripManager {
 				view.setAlpha(0);
 			}
 		}
+	}
+	
+	private void setDateBackgroundColor() {
+		Drawable bg = dateContainer.getBackground();
+		if (bg instanceof GradientDrawable ){
+			GradientDrawable grad = (GradientDrawable) bg;
+			int color = dateManager.getCurrDateColor();
+			grad.setColor(color);
+		}
+	}
+	
+	public void setImgQuality(ImageQualityEnum quality){
+		mQuality = quality;
+	}
+	
+	public void reloadStrip(){
+		String today = dateManager.getCurrDateTitle();
+		String url = loadedTitleUrlMappings.getMapping(today).getUrl(mQuality);
+		downloadStrip(url);	
 	}
 }
